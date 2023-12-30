@@ -126,7 +126,15 @@ class TopicControllerTest {
 
         @Test
         void deleteTopicShouldReturnNoContent() throws Exception {
-            mockMvc.perform(delete("/topic/1").with(jwt())).andExpect(status().isNoContent());
+            String iss = "https://accounts.google.com";
+            String sub = "123456789";
+
+            // Topic with different sub
+            Topic topic = Topic.builder().name("Name").description("Description").iss(iss).sub("123456789").build();
+
+            when(topicService.findById(anyLong())).thenReturn(Optional.of(topic));
+
+            mockMvc.perform(delete("/topic/1").with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub)))).andExpect(status().isNoContent());
 
         }
     }
