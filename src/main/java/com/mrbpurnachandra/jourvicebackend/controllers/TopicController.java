@@ -1,5 +1,6 @@
 package com.mrbpurnachandra.jourvicebackend.controllers;
 
+import com.mrbpurnachandra.jourvicebackend.exceptions.TopicNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.services.TopicService;
 import jakarta.validation.Valid;
@@ -51,5 +52,24 @@ public class TopicController {
                 throw new AccessDeniedException("Unauthorized operation");
             topicService.delete(t);
         });
+    }
+
+    @GetMapping("/{id}")
+    public Topic getTopic(@PathVariable("id") Long id, JwtAuthenticationToken authentication) {
+        Map<String, Object> attributes = authentication.getTokenAttributes();
+
+        String sub = (String) attributes.get("sub");
+        String iss = (String) attributes.get("iss");
+
+        Optional<Topic> topic = topicService.findById(id);
+
+        if (topic.isEmpty()) throw new TopicNotFoundException();
+
+        Topic t = topic.get();
+
+        if (!t.getSub().equals(sub) || !t.getIss().equals(iss))
+            throw new AccessDeniedException("Unauthorized operation");
+
+        return t;
     }
 }

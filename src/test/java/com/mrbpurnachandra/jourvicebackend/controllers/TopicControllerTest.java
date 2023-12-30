@@ -22,8 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest
@@ -128,6 +127,46 @@ class TopicControllerTest {
         @Test
         void deleteTopicShouldReturnNoContent() throws Exception {
             mockMvc.perform(delete("/topic/1").with(jwt())).andExpect(status().isNoContent());
+
+        }
+    }
+
+    @Nested
+    class GetTopicTest {
+        @Test
+        void getTopicShouldReturnUnauthorizedWithoutUser() throws Exception {
+            mockMvc.perform(get("/topic/1")).andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        void getTopicShouldReturnNotFoundWhenTopicIsNotPresent() throws Exception {
+            mockMvc.perform(get("/topic/1").with(jwt())).andExpect(status().isNotFound());
+        }
+
+        @Test
+        void getTopicShouldReturnForbiddenWhenTryingToAccessOthersTopic() throws Exception {
+            String iss = "https://accounts.google.com";
+            String sub = "123456789";
+
+            // Topic with different sub
+            Topic topic = Topic.builder().name("Name").description("Description").iss(iss).sub("000000001").build();
+
+            when(topicService.findById(anyLong())).thenReturn(Optional.of(topic));
+
+            mockMvc.perform(get("/topic/1").with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss)))).andExpect(status().isForbidden());
+        }
+
+        @Test
+        void getTopicShouldReturnTopic() throws Exception {
+            String iss = "https://accounts.google.com";
+            String sub = "123456789";
+
+            // Topic with different sub
+            Topic topic = Topic.builder().name("Name").description("Description").iss(iss).sub(sub).build();
+
+            when(topicService.findById(anyLong())).thenReturn(Optional.of(topic));
+
+            mockMvc.perform(get("/topic/1").with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss)))).andExpect(status().isOk());
 
         }
     }

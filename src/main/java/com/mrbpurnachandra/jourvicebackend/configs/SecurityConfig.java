@@ -12,9 +12,11 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.oauth2ResourceServer(oauth -> {
-            oauth.jwt(Customizer.withDefaults());
+        http.authorizeHttpRequests(authorize -> {
+            authorize.anyRequest().authenticated();
         });
+
+        http.oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));
         return http.build();
     }
 }
