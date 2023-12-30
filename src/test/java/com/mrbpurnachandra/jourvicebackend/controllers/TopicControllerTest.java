@@ -12,15 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -100,5 +102,33 @@ class TopicControllerTest {
 
         }
 
+    }
+
+    @Nested
+    class DeleteTopicTest {
+        @Test
+        void deleteTopicShouldReturnForbiddenWithoutUser() throws Exception {
+            mockMvc.perform(delete("/topic/1")).andExpect(status().isForbidden());
+        }
+
+        @Test
+        void deleteTopicShouldReturnForbiddenWhenTryingToDeleteOthersTopic() throws Exception {
+            String iss = "https://accounts.google.com";
+            String sub = "123456789";
+
+            // Topic with different sub
+            Topic topic = Topic.builder().name("Name").description("Description").iss(iss).sub("000000001").build();
+
+            when(topicService.findById(anyLong())).thenReturn(Optional.of(topic));
+
+            mockMvc.perform(delete("/topic/1").with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub)))).andExpect(status().isForbidden());
+
+        }
+
+        @Test
+        void deleteTopicShouldReturnNoContent() throws Exception {
+            mockMvc.perform(delete("/topic/1").with(jwt())).andExpect(status().isNoContent());
+
+        }
     }
 }
