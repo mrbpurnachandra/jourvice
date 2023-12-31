@@ -31,12 +31,17 @@ class NoteControllerTest {
 
     @MockBean
     NoteService noteService;
+    public static final String ISS = "https://accounts.google.com";
+    public static final String SUB = "123456789";
+    private static final Long TOPIC_ID = 1L;
+    private static final Long NOTE_ID = 1L;
+    public static final String NOTE_CONTENT = "Content of Note";
+    private static final String NOTE_BASE_URL = "/topic/" + TOPIC_ID + "/note";
+    public static final String NOTE_URL = NOTE_BASE_URL + "/" + NOTE_ID;
+
 
     @Nested
     class AddNoteTest {
-        private static final Long TOPIC_ID = 1L;
-        private static final String BASE_URL = "/topic/" + TOPIC_ID + "/note";
-
         private static Arguments[] parameters() {
             List<Arguments> arguments = new ArrayList<>();
 
@@ -49,7 +54,7 @@ class NoteControllerTest {
 
         @Test
         void addNoteShouldShouldReturnForbiddenWithoutUser() throws Exception {
-            mockMvc.perform(post(BASE_URL)).andExpect(status().isForbidden());
+            mockMvc.perform(post(NOTE_BASE_URL)).andExpect(status().isForbidden());
         }
 
         @ParameterizedTest
@@ -60,28 +65,23 @@ class NoteControllerTest {
             ObjectMapper mapper = new ObjectMapper();
             String body = mapper.writeValueAsString(note);
 
-            mockMvc.perform(post(BASE_URL).content(body).contentType(MediaType.APPLICATION_JSON).with(jwt())).andExpect(status().isBadRequest());
+            mockMvc.perform(post(NOTE_BASE_URL).content(body).contentType(MediaType.APPLICATION_JSON).with(jwt())).andExpect(status().isBadRequest());
         }
 
         @Test
         void addNoteShouldInvokeSaveNoteMethodOnNoteService() throws Exception {
-            String content = "Content of Note";
+            User user = User.builder().sub(SUB).iss(ISS).build();
 
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
-
-            User user = User.builder().sub(sub).iss(iss).build();
-
-            Note note = Note.builder().content(content).build();
+            Note note = Note.builder().content(NOTE_CONTENT).build();
 
             ObjectMapper mapper = new ObjectMapper();
             String body = mapper.writeValueAsString(note);
 
             mockMvc.perform(
-                    post(BASE_URL)
+                    post(NOTE_BASE_URL)
                             .content(body)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss))));
+                            .with(jwt().jwt(j -> j.claim("sub", SUB).claim("iss", ISS))));
 
             verify(noteService).saveNote(eq(note), eq(TOPIC_ID), eq(user));
         }
@@ -89,24 +89,16 @@ class NoteControllerTest {
 
     @Nested
     class DeleteNoteTest {
-        private static final Long TOPIC_ID = 1L;
-        private static final String BASE_URL = "/topic/" + TOPIC_ID + "/note";
-
         @Test
         void deleteNoteShouldReturnForbiddenWithoutUser() throws Exception {
-            mockMvc.perform(delete(BASE_URL)).andExpect(status().isForbidden());
+            mockMvc.perform(delete(NOTE_BASE_URL)).andExpect(status().isForbidden());
         }
 
         @Test
         void deleteNoteShouldInvokeDeleteNoteMethodOnNoteService() throws Exception {
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
+            User user = User.builder().sub(SUB).iss(ISS).build();
 
-            final long NOTE_ID = 1L;
-
-            User user = User.builder().sub(sub).iss(iss).build();
-
-            mockMvc.perform(delete(BASE_URL + "/" + NOTE_ID).with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub))));
+            mockMvc.perform(delete(NOTE_URL).with(jwt().jwt(j -> j.claim("iss", ISS).claim("sub", SUB))));
 
             verify(noteService).deleteNote(eq(NOTE_ID), eq(TOPIC_ID), eq(user));
         }
@@ -114,25 +106,16 @@ class NoteControllerTest {
 
     @Nested
     class GetNoteTest {
-        private static final Long TOPIC_ID = 1L;
-        private static final String BASE_URL = "/topic/" + TOPIC_ID + "/note";
-
         @Test
         void getNoteShouldReturnUnauthorizedWithoutUser() throws Exception {
-            final long NOTE_ID = 1L;
-            mockMvc.perform(get(BASE_URL + "/" + NOTE_ID)).andExpect(status().isUnauthorized());
+            mockMvc.perform(get(NOTE_URL)).andExpect(status().isUnauthorized());
         }
 
         @Test
         void getNoteShouldInvokeGetNoteMethodOnNoteService() throws Exception {
-            final long NOTE_ID = 1L;
+            User user = User.builder().sub(SUB).iss(ISS).build();
 
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
-
-            User user = User.builder().sub(sub).iss(iss).build();
-
-            mockMvc.perform(get(BASE_URL + "/" + NOTE_ID).with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss))));
+            mockMvc.perform(get(NOTE_URL).with(jwt().jwt(j -> j.claim("sub", SUB).claim("iss", ISS))));
 
             verify(noteService).getNote(eq(NOTE_ID), eq(TOPIC_ID), eq(user));
         }
