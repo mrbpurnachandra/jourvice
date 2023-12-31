@@ -2,6 +2,7 @@ package com.mrbpurnachandra.jourvicebackend.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
+import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.services.TopicService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,14 +17,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
 class TopicControllerTest {
@@ -76,13 +75,14 @@ class TopicControllerTest {
         }
 
         @Test
-        void addTopicShouldReturnOkWithSavedTopic() throws Exception {
+        void addTopicShouldInvokeSaveTopicMethodOnTopicService() throws Exception {
             String name = "Name";
             String description = "Description";
+
             String iss = "https://accounts.google.com";
             String sub = "123456789";
 
-            when(topicService.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+            User user = User.builder().sub(sub).iss(iss).build();
 
             Topic topic = Topic.builder().name(name).description(description).build();
 
@@ -93,12 +93,9 @@ class TopicControllerTest {
                             post("/topic")
                                     .with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub)))
                                     .content(content)
-                                    .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.iss").value(iss))
-                    .andExpect(jsonPath("$.sub").value(sub));
+                                    .contentType(MediaType.APPLICATION_JSON));
 
+            verify(topicService).saveTopic(eq(topic), eq(user));
         }
 
     }
@@ -111,31 +108,14 @@ class TopicControllerTest {
         }
 
         @Test
-        void deleteTopicShouldReturnForbiddenWhenTryingToDeleteOthersTopic() throws Exception {
+        void deleteTopicShouldInvokeDeleteTopicMethodOnTopicService() throws Exception {
             String iss = "https://accounts.google.com";
             String sub = "123456789";
 
-            // Topic with different sub
-            Topic topic = Topic.builder().name("Name").description("Description").iss(iss).sub("000000001").build();
+            User user = User.builder().sub(sub).iss(iss).build();
 
-            when(topicService.findById(anyLong())).thenReturn(Optional.of(topic));
-
-            mockMvc.perform(delete("/topic/1").with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub)))).andExpect(status().isForbidden());
-
-        }
-
-        @Test
-        void deleteTopicShouldReturnNoContent() throws Exception {
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
-
-            // Topic with different sub
-            Topic topic = Topic.builder().name("Name").description("Description").iss(iss).sub("123456789").build();
-
-            when(topicService.findById(anyLong())).thenReturn(Optional.of(topic));
-
-            mockMvc.perform(delete("/topic/1").with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub)))).andExpect(status().isNoContent());
-
+            mockMvc.perform(delete("/topic/1").with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub))));
+            verify(topicService).deleteTopic(eq(1L), eq(user));
         }
     }
 
@@ -147,34 +127,15 @@ class TopicControllerTest {
         }
 
         @Test
-        void getTopicShouldReturnNotFoundWhenTopicIsNotPresent() throws Exception {
-            mockMvc.perform(get("/topic/1").with(jwt())).andExpect(status().isNotFound());
-        }
-
-        @Test
-        void getTopicShouldReturnForbiddenWhenTryingToAccessOthersTopic() throws Exception {
+        void getTopicShouldInvokeGetTopicMethodOnTopicService() throws Exception {
             String iss = "https://accounts.google.com";
             String sub = "123456789";
 
-            // Topic with different sub
-            Topic topic = Topic.builder().name("Name").description("Description").iss(iss).sub("000000001").build();
+            User user = User.builder().sub(sub).iss(iss).build();
 
-            when(topicService.findById(anyLong())).thenReturn(Optional.of(topic));
+            mockMvc.perform(get("/topic/1").with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss))));
 
-            mockMvc.perform(get("/topic/1").with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss)))).andExpect(status().isForbidden());
-        }
-
-        @Test
-        void getTopicShouldReturnTopic() throws Exception {
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
-
-            // Topic with different sub
-            Topic topic = Topic.builder().name("Name").description("Description").iss(iss).sub(sub).build();
-
-            when(topicService.findById(anyLong())).thenReturn(Optional.of(topic));
-
-            mockMvc.perform(get("/topic/1").with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss)))).andExpect(status().isOk());
+            verify(topicService).getTopic(eq(1L), eq(user));
 
         }
     }

@@ -33,8 +33,7 @@ public class Topic {
 
     private Timestamp createdAt = new Timestamp(new java.util.Date().getTime());
 
-    private String sub;
-    private String iss;
+    private User user;
 
     public void setName(String name) {
         this.name = name.trim();
