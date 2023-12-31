@@ -31,43 +31,35 @@ class NoteServiceTest {
     @MockBean
     NoteRepository noteRepository;
 
+    final String ISS = "https://accounts.google.com";
+    final String SUB = "123456789";
+    final long TOPIC_ID = 1L;
+    final long NOTE_ID = 1L;
+    final String NOTE_CONTENT = "Content of Note";
+
     @Nested
     class AddNoteTest {
         @Test
         void addNoteShouldInvokeGetTopicMethodOnTopicService() {
-            String content = "Content of Note";
+            User user = User.builder().sub(SUB).iss(ISS).build();
+            Note note = Note.builder().content(NOTE_CONTENT).build();
 
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
+            noteService.saveNote(note, TOPIC_ID, user);
 
-            User user = User.builder().sub(sub).iss(iss).build();
-
-            Note note = Note.builder().content(content).build();
-
-            noteService.saveNote(note, 1L, user);
-
-            verify(topicService).getTopic(eq(1L), eq(user));
+            verify(topicService).getTopic(eq(TOPIC_ID), eq(user));
         }
 
         @Test
         void addNoteShouldInvokeSaveMethodOnNoteRepository() {
-            String content = "Content of Note";
-
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
-
-            User user = User.builder().sub(sub).iss(iss).build();
-            Topic topic = Topic.builder().id(1L).build();
-
-            Note note = Note.builder().content(content).build();
+            User user = User.builder().sub(SUB).iss(ISS).build();
+            Topic topic = Topic.builder().id(TOPIC_ID).build();
+            Note note = Note.builder().content(NOTE_CONTENT).build();
 
             when(topicService.getTopic(topic.getId(), user)).thenReturn(topic);
 
             noteService.saveNote(note, topic.getId(), user);
 
-            verify(noteRepository).save(assertArg(n -> {
-                assertEquals(topic, n.getTopic());
-            }));
+            verify(noteRepository).save(assertArg(n -> assertEquals(topic, n.getTopic())));
         }
     }
 
@@ -75,29 +67,23 @@ class NoteServiceTest {
     class DeleteNoteTest {
         @Test
         void deleteNoteShouldInvokeGetTopicMethodOnTopicService() {
-            long noteId = 1L;
-            long topicId = 1L;
+            User user = User.builder().sub(SUB).iss(ISS).build();
+            Note note = Note.builder().id(NOTE_ID).build();
 
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
+            when(noteRepository.findById(NOTE_ID)).thenReturn(Optional.of(note));
 
-            User user = User.builder().sub(sub).iss(iss).build();
+            noteService.deleteNote(NOTE_ID, TOPIC_ID, user);
 
-            Note note = Note.builder().id(noteId).build();
-            when(noteRepository.findById(noteId)).thenReturn(Optional.of(note));
-
-            noteService.deleteNote(noteId, topicId, user);
-
-            verify(topicService).getTopic(eq(topicId), eq(user));
+            verify(topicService).getTopic(eq(TOPIC_ID), eq(user));
         }
 
         @Test
         void deleteNoteShouldInvokeDeleteMethodOnNoteRepository() {
-            Note note = Note.builder().id(1L).build();
+            Note note = Note.builder().id(NOTE_ID).build();
 
             when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
 
-            noteService.deleteNote(note.getId(), 1L, null);
+            noteService.deleteNote(note.getId(), TOPIC_ID, null);
 
             verify(noteRepository).delete(note);
         }
@@ -109,38 +95,30 @@ class NoteServiceTest {
             // This test ensures that user is authorized to access content of
             // topic
         void getNoteShouldInvokeGetTopicMethodOnTopicService() {
-            long noteId = 1L;
-            long topicId = 1L;
-
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
-
-            User user = User.builder().sub(sub).iss(iss).build();
-            Note note = Note.builder().id(noteId).build();
+            User user = User.builder().sub(SUB).iss(ISS).build();
+            Note note = Note.builder().id(NOTE_ID).build();
 
             when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
 
-            noteService.getNote(noteId, topicId, user);
+            noteService.getNote(NOTE_ID, TOPIC_ID, user);
 
-            verify(topicService).getTopic(eq(topicId), eq(user));
+            verify(topicService).getTopic(eq(TOPIC_ID), eq(user));
         }
 
         @Test
         void getNoteShouldInvokeFindNoteByIdMethodOnNoteRepository() {
-            Note note = Note.builder().id(1L).build();
+            Note note = Note.builder().id(NOTE_ID).build();
 
             when(noteRepository.findById(note.getId())).thenReturn(Optional.of(note));
 
-            noteService.getNote(note.getId(), 1L, null);
+            noteService.getNote(note.getId(), TOPIC_ID, null);
 
             verify(noteRepository).findById(eq(note.getId()));
         }
 
         @Test
         void getNoteShouldThrowNoteNotFoundExceptionWhenNoteIsNotPresent() {
-            assertThrows(NoteNotFoundException.class, () -> {
-                noteService.getNote(1L, 1L, null);
-            });
+            assertThrows(NoteNotFoundException.class, () -> noteService.getNote(NOTE_ID, TOPIC_ID, null));
         }
     }
 }
