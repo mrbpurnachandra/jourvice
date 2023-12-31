@@ -32,4 +32,11 @@ public class NoteController {
 
         noteService.deleteNote(id, topicId, user);
     }
+
+    @GetMapping("/{id}")
+    public Note getNote(@PathVariable("topicId") Long topicId, @PathVariable("id") Long id, JwtAuthenticationToken authentication) {
+        User user = AuthenticationUtils.getUser(authentication);
+
+        return noteService.getNote(id, topicId, user);
+    }
 }

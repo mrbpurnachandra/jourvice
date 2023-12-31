@@ -1,5 +1,6 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
+import com.mrbpurnachandra.jourvicebackend.exceptions.NoteNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
@@ -40,5 +41,13 @@ public class NoteService {
         Optional<Note> note = noteRepository.findById(id);
 
         note.ifPresent(noteRepository::delete);
+    }
+
+    public Note getNote(Long id, Long topicId, User user) {
+        // This handles the authorization because user other than owner of topic
+        // cannot get the topic
+        topicService.getTopic(topicId, user);
+
+        return noteRepository.findById(id).orElseThrow(NoteNotFoundException::new);
     }
 }

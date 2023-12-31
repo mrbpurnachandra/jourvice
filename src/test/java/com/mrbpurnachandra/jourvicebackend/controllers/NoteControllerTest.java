@@ -21,8 +21,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(NoteController.class)
@@ -110,6 +109,32 @@ class NoteControllerTest {
             mockMvc.perform(delete(BASE_URL + "/" + NOTE_ID).with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub))));
 
             verify(noteService).deleteNote(eq(NOTE_ID), eq(TOPIC_ID), eq(user));
+        }
+    }
+
+    @Nested
+    class GetNoteTest {
+        private static final Long TOPIC_ID = 1L;
+        private static final String BASE_URL = "/topic/" + TOPIC_ID + "/note";
+
+        @Test
+        void getNoteShouldReturnUnauthorizedWithoutUser() throws Exception {
+            final long NOTE_ID = 1L;
+            mockMvc.perform(get(BASE_URL + "/" + NOTE_ID)).andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        void getNoteShouldInvokeGetNoteMethodOnNoteService() throws Exception {
+            final long NOTE_ID = 1L;
+
+            String iss = "https://accounts.google.com";
+            String sub = "123456789";
+
+            User user = User.builder().sub(sub).iss(iss).build();
+
+            mockMvc.perform(get(BASE_URL + "/" + NOTE_ID).with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss))));
+
+            verify(noteService).getNote(eq(NOTE_ID), eq(TOPIC_ID), eq(user));
         }
     }
 }
