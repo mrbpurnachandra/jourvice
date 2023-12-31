@@ -1,6 +1,5 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
-import com.mrbpurnachandra.jourvicebackend.exceptions.NoteNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
@@ -14,8 +13,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.assertArg;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -88,15 +87,6 @@ class NoteServiceTest {
             noteService.deleteNote(noteId, topicId, user);
 
             verify(topicService).getTopic(eq(topicId), eq(user));
-        }
-
-        @Test
-        void deleteNoteShouldThrowNoteNotFoundExceptionWhenNoteIsNotPresent() {
-            assertThrows(NoteNotFoundException.class, () -> {
-                when(noteRepository.findById(anyLong())).thenReturn(Optional.empty());
-
-                noteService.deleteNote(1L, 1L, null);
-            });
         }
 
         @Test

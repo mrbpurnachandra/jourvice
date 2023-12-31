@@ -1,6 +1,5 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
-import com.mrbpurnachandra.jourvicebackend.exceptions.NoteNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
@@ -8,6 +7,8 @@ import com.mrbpurnachandra.jourvicebackend.repositories.NoteRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class NoteService {
@@ -36,8 +37,8 @@ public class NoteService {
         // cannot get the topic
         topicService.getTopic(topicId, user);
 
-        Note note = noteRepository.findById(id).orElseThrow(NoteNotFoundException::new);
+        Optional<Note> note = noteRepository.findById(id);
 
-        noteRepository.delete(note);
+        note.ifPresent(noteRepository::delete);
     }
 }
