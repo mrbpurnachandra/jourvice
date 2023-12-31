@@ -28,7 +28,6 @@ public class TopicController {
         return topicService.saveTopic(topic, user);
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void deleteTopic(@PathVariable("id") Long topicId, JwtAuthenticationToken authentication) {
         User user = AuthenticationUtils.getUser(authentication);
