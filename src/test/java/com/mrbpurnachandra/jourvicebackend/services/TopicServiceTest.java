@@ -21,6 +21,13 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class TopicServiceTest {
+    static final String SUB = "123456789";
+    static final String OTHER_SUB = "Other Sub";
+    static final String ISS = "https://account.google.com";
+    static final Long TOPIC_ID = 1L;
+    static final String TOPIC_NAME = "Topic";
+    static final String TOPIC_DESCRIPTION = "Topic Description";
+
     @MockBean
     TopicRepository topicRepository;
 
@@ -30,13 +37,11 @@ class TopicServiceTest {
     @Nested
     class SaveTopicTest {
 
+
         @Test
         void saveTopicShouldInvokeSaveMethodOnTopicRepository() {
-            String sub = "123456789";
-            String iss = "https://account.google.com";
-
-            User user = User.builder().sub(sub).iss(iss).build();
-            Topic topic = Topic.builder().name("Topic").description("Topic Description").build();
+            User user = User.builder().sub(SUB).iss(ISS).build();
+            Topic topic = Topic.builder().name(TOPIC_NAME).description(TOPIC_DESCRIPTION).build();
 
             topicService.saveTopic(topic, user);
 
@@ -49,32 +54,24 @@ class TopicServiceTest {
         @Test
         void deleteTopicShouldThrowAccessDeniedExceptionWhenTryingToDeleteOthersTopic() {
             assertThrows(AccessDeniedException.class, () -> {
-                String sub = "123456789";
-                String iss = "https://account.google.com";
-
-                User user1 = User.builder().sub(sub).iss(iss).build();
-                User user2 = User.builder().sub("Other Sub").iss(iss).build();
-
-                Topic topic = Topic.builder().id(1L).name("Topic").description("Topic Description").user(user1).build();
+                User user1 = User.builder().sub(SUB).iss(ISS).build();
+                User user2 = User.builder().sub(OTHER_SUB).iss(ISS).build();
+                Topic topic = Topic.builder().id(TOPIC_ID).name(TOPIC_NAME).description(TOPIC_DESCRIPTION).user(user1).build();
 
                 when(topicRepository.findById(anyLong())).thenReturn(Optional.of(topic));
 
-                topicService.deleteTopic(1L, user2);
+                topicService.deleteTopic(TOPIC_ID, user2);
             });
         }
 
         @Test
         void deleteTopicShouldInvokeDeleteMethodOnTopicRepository() {
-            String sub = "123456789";
-            String iss = "https://account.google.com";
-
-            User user = User.builder().sub(sub).iss(iss).build();
-
-            Topic topic = Topic.builder().id(1L).name("Topic").description("Topic Description").user(user).build();
+            User user = User.builder().sub(SUB).iss(ISS).build();
+            Topic topic = Topic.builder().id(TOPIC_ID).name(TOPIC_NAME).description(TOPIC_DESCRIPTION).user(user).build();
 
             when(topicRepository.findById(anyLong())).thenReturn(Optional.of(topic));
 
-            topicService.deleteTopic(1L, user);
+            topicService.deleteTopic(TOPIC_ID, user);
 
             verify(topicRepository).delete(eq(topic));
         }
@@ -86,14 +83,11 @@ class TopicServiceTest {
         @Test
         void getTopicShouldThrowTopicNotFoundExceptionWhenTopicIsNotPresent() {
             assertThrows(TopicNotFoundException.class, () -> {
-                String sub = "123456789";
-                String iss = "https://account.google.com";
-
-                User user = User.builder().sub(sub).iss(iss).build();
+                User user = User.builder().sub(SUB).iss(ISS).build();
 
                 when(topicRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-                topicService.getTopic(1L, user);
+                topicService.getTopic(TOPIC_ID, user);
             });
 
         }
@@ -101,32 +95,24 @@ class TopicServiceTest {
         @Test
         void getTopicShouldThrowAccessDeniedExceptionWhenTryingToAccessOthersTopic() {
             assertThrows(AccessDeniedException.class, () -> {
-                String sub = "123456789";
-                String iss = "https://account.google.com";
-
-                User user1 = User.builder().sub(sub).iss(iss).build();
-                User user2 = User.builder().sub("Other Sub").iss(iss).build();
-
-                Topic topic = Topic.builder().id(1L).name("Topic").description("Topic Description").user(user1).build();
+                User user1 = User.builder().sub(SUB).iss(ISS).build();
+                User user2 = User.builder().sub(OTHER_SUB).iss(ISS).build();
+                Topic topic = Topic.builder().id(TOPIC_ID).name(TOPIC_NAME).description(TOPIC_DESCRIPTION).user(user1).build();
 
                 when(topicRepository.findById(anyLong())).thenReturn(Optional.of(topic));
 
-                topicService.getTopic(1L, user2);
+                topicService.getTopic(TOPIC_ID, user2);
             });
         }
 
         @Test
         void getTopicShouldReturnTopic() {
-            String sub = "123456789";
-            String iss = "https://account.google.com";
-
-            User user = User.builder().sub(sub).iss(iss).build();
-
-            Topic topic = Topic.builder().id(1L).name("Topic").description("Topic Description").user(user).build();
+            User user = User.builder().sub(SUB).iss(ISS).build();
+            Topic topic = Topic.builder().id(TOPIC_ID).name(TOPIC_NAME).description(TOPIC_DESCRIPTION).user(user).build();
 
             when(topicRepository.findById(anyLong())).thenReturn(Optional.of(topic));
 
-            Topic returnedTopic = topicService.getTopic(1L, user);
+            Topic returnedTopic = topicService.getTopic(TOPIC_ID, user);
 
             assertEquals(topic, returnedTopic);
         }

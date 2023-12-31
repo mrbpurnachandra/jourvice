@@ -26,6 +26,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TopicController.class)
 class TopicControllerTest {
+    static final String TOPIC_NAME = "Name";
+    static final String TOPIC_DESCRIPTION = "Description";
+    static final String ISS = "https://accounts.google.com";
+    static final String SUB = "123456789";
+    static final long TOPIC_ID = 1L;
+    static final String TOPIC_BASE_URL = "/topic";
+    static final String TOPIC_URL = TOPIC_BASE_URL + "/" + TOPIC_ID;
 
     @Autowired
     MockMvc mockMvc;
@@ -50,12 +57,12 @@ class TopicControllerTest {
 
         @Test
         void addTopicShouldReturnForbiddenWithoutUser() throws Exception {
-            mockMvc.perform(post("/topic")).andExpect(status().isForbidden());
+            mockMvc.perform(post(TOPIC_BASE_URL)).andExpect(status().isForbidden());
         }
 
         @Test
         void addTopicShouldReturnBadRequestWithoutTopicData() throws Exception {
-            mockMvc.perform(post("/topic").with(jwt())).andExpect(status().isBadRequest());
+            mockMvc.perform(post(TOPIC_BASE_URL).with(jwt())).andExpect(status().isBadRequest());
         }
 
         @ParameterizedTest
@@ -67,7 +74,7 @@ class TopicControllerTest {
             String content = objectMapper.writeValueAsString(topic);
 
             mockMvc.perform(
-                            post("/topic")
+                            post(TOPIC_BASE_URL)
                                     .with(jwt())
                                     .content(content)
                                     .contentType(MediaType.APPLICATION_JSON))
@@ -76,22 +83,15 @@ class TopicControllerTest {
 
         @Test
         void addTopicShouldInvokeSaveTopicMethodOnTopicService() throws Exception {
-            String name = "Name";
-            String description = "Description";
-
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
-
-            User user = User.builder().sub(sub).iss(iss).build();
-
-            Topic topic = Topic.builder().name(name).description(description).build();
+            User user = User.builder().sub(SUB).iss(ISS).build();
+            Topic topic = Topic.builder().name(TOPIC_NAME).description(TOPIC_DESCRIPTION).build();
 
             ObjectMapper objectMapper = new ObjectMapper();
             String content = objectMapper.writeValueAsString(topic);
 
             mockMvc.perform(
-                            post("/topic")
-                                    .with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub)))
+                    post(TOPIC_BASE_URL)
+                            .with(jwt().jwt(j -> j.claim("iss", ISS).claim("sub", SUB)))
                                     .content(content)
                                     .contentType(MediaType.APPLICATION_JSON));
 
@@ -104,18 +104,15 @@ class TopicControllerTest {
     class DeleteTopicTest {
         @Test
         void deleteTopicShouldReturnForbiddenWithoutUser() throws Exception {
-            mockMvc.perform(delete("/topic/1")).andExpect(status().isForbidden());
+            mockMvc.perform(delete(TOPIC_URL)).andExpect(status().isForbidden());
         }
 
         @Test
         void deleteTopicShouldInvokeDeleteTopicMethodOnTopicService() throws Exception {
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
+            User user = User.builder().sub(SUB).iss(ISS).build();
 
-            User user = User.builder().sub(sub).iss(iss).build();
-
-            mockMvc.perform(delete("/topic/1").with(jwt().jwt(j -> j.claim("iss", iss).claim("sub", sub))));
-            verify(topicService).deleteTopic(eq(1L), eq(user));
+            mockMvc.perform(delete(TOPIC_URL).with(jwt().jwt(j -> j.claim("iss", ISS).claim("sub", SUB))));
+            verify(topicService).deleteTopic(eq(TOPIC_ID), eq(user));
         }
     }
 
@@ -123,19 +120,16 @@ class TopicControllerTest {
     class GetTopicTest {
         @Test
         void getTopicShouldReturnUnauthorizedWithoutUser() throws Exception {
-            mockMvc.perform(get("/topic/1")).andExpect(status().isUnauthorized());
+            mockMvc.perform(get(TOPIC_URL)).andExpect(status().isUnauthorized());
         }
 
         @Test
         void getTopicShouldInvokeGetTopicMethodOnTopicService() throws Exception {
-            String iss = "https://accounts.google.com";
-            String sub = "123456789";
+            User user = User.builder().sub(SUB).iss(ISS).build();
 
-            User user = User.builder().sub(sub).iss(iss).build();
+            mockMvc.perform(get(TOPIC_URL).with(jwt().jwt(j -> j.claim("sub", SUB).claim("iss", ISS))));
 
-            mockMvc.perform(get("/topic/1").with(jwt().jwt(j -> j.claim("sub", sub).claim("iss", iss))));
-
-            verify(topicService).getTopic(eq(1L), eq(user));
+            verify(topicService).getTopic(eq(TOPIC_ID), eq(user));
 
         }
     }

@@ -22,6 +22,12 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class NoteServiceTest {
+    static final String ISS = "https://accounts.google.com";
+    static final String SUB = "123456789";
+    static final long TOPIC_ID = 1L;
+    static final long NOTE_ID = 1L;
+    static final String NOTE_CONTENT = "Content of Note";
+
     @Autowired
     NoteService noteService;
 
@@ -31,14 +37,9 @@ class NoteServiceTest {
     @MockBean
     NoteRepository noteRepository;
 
-    final String ISS = "https://accounts.google.com";
-    final String SUB = "123456789";
-    final long TOPIC_ID = 1L;
-    final long NOTE_ID = 1L;
-    final String NOTE_CONTENT = "Content of Note";
-
     @Nested
     class AddNoteTest {
+
         @Test
         void addNoteShouldInvokeGetTopicMethodOnTopicService() {
             User user = User.builder().sub(SUB).iss(ISS).build();

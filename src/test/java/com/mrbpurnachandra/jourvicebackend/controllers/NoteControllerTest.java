@@ -26,19 +26,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(NoteController.class)
 class NoteControllerTest {
+    static final String ISS = "https://accounts.google.com";
+    static final String SUB = "123456789";
+    static final Long TOPIC_ID = 1L;
+    static final Long NOTE_ID = 1L;
+    static final String NOTE_CONTENT = "Content of Note";
+    static final String NOTE_BASE_URL = "/topic/" + TOPIC_ID + "/note";
+    static final String NOTE_URL = NOTE_BASE_URL + "/" + NOTE_ID;
+
     @Autowired
     MockMvc mockMvc;
 
     @MockBean
     NoteService noteService;
-    public static final String ISS = "https://accounts.google.com";
-    public static final String SUB = "123456789";
-    private static final Long TOPIC_ID = 1L;
-    private static final Long NOTE_ID = 1L;
-    public static final String NOTE_CONTENT = "Content of Note";
-    private static final String NOTE_BASE_URL = "/topic/" + TOPIC_ID + "/note";
-    public static final String NOTE_URL = NOTE_BASE_URL + "/" + NOTE_ID;
-
 
     @Nested
     class AddNoteTest {
