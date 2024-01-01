@@ -1,6 +1,9 @@
 package com.mrbpurnachandra.jourvicebackend.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mrbpurnachandra.jourvicebackend.dtos.NoteAdditionInfoDto;
+import com.mrbpurnachandra.jourvicebackend.mappers.NoteAdditionInfoDtoMapper;
+import com.mrbpurnachandra.jourvicebackend.models.Mood;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.services.NoteService;
@@ -18,8 +21,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,12 +35,16 @@ class NoteControllerTest {
     static final String SUB = "123456789";
     static final Long TOPIC_ID = 1L;
     static final Long NOTE_ID = 1L;
+    static final Integer MOOD_ID = 1;
     static final String NOTE_CONTENT = "Content of Note";
     static final String NOTE_BASE_URL = "/topic/" + TOPIC_ID + "/note";
     static final String NOTE_URL = NOTE_BASE_URL + "/" + NOTE_ID;
 
     @Autowired
     MockMvc mockMvc;
+
+    @MockBean
+    NoteAdditionInfoDtoMapper noteAdditionInfoDtoMapper;
 
     @MockBean
     NoteService noteService;
@@ -76,6 +85,32 @@ class NoteControllerTest {
 
             ObjectMapper mapper = new ObjectMapper();
             String body = mapper.writeValueAsString(note);
+
+            when(noteAdditionInfoDtoMapper.mapToNote(any())).thenReturn(note);
+
+            mockMvc.perform(
+                    post(NOTE_BASE_URL)
+                            .content(body)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .with(jwt().jwt(j -> j.claim("sub", SUB).claim("iss", ISS))));
+
+            verify(noteService).saveNote(eq(note), eq(TOPIC_ID), eq(user));
+        }
+
+        @Test
+        void addNoteShouldAddMoodToNoteIfProvidedBeforeInvokingSaveNoteMethodOnNoteService() throws Exception {
+            User user = User.builder().sub(SUB).iss(ISS).build();
+
+            NoteAdditionInfoDto.MoodDto moodDto = NoteAdditionInfoDto.MoodDto.builder().id(MOOD_ID).build();
+            NoteAdditionInfoDto noteAdditionInfoDto = NoteAdditionInfoDto.builder().content(NOTE_CONTENT).mood(moodDto).build();
+
+            ObjectMapper mapper = new ObjectMapper();
+            String body = mapper.writeValueAsString(noteAdditionInfoDto);
+
+            Mood mood = Mood.builder().id(MOOD_ID).build();
+            Note note = Note.builder().content(NOTE_CONTENT).mood(mood).build();
+
+            when(noteAdditionInfoDtoMapper.mapToNote(any())).thenReturn(note);
 
             mockMvc.perform(
                     post(NOTE_BASE_URL)

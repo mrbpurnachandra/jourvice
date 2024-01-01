@@ -1,6 +1,5 @@
-package com.mrbpurnachandra.jourvicebackend.models;
+package com.mrbpurnachandra.jourvicebackend.dtos;
 
-import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -8,30 +7,24 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-import java.util.Date;
-
 @Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-public class Note {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class NoteAdditionInfoDto {
     @NotBlank
     @Size(min = 2, max = 256)
     private String content;
 
-    private Timestamp createdAt = new Timestamp(new Date().getTime());
+    private MoodDto mood;
 
-    @ManyToOne
-    private Topic topic;
-
-    @ManyToOne
-    private Mood mood;
+    @Builder
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MoodDto {
+        private Integer id;
+    }
 
     public void setContent(String content) {
         this.content = content.trim();
