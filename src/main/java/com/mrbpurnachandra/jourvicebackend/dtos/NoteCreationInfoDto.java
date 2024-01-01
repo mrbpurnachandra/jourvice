@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class NoteAdditionInfoDto {
+public class NoteCreationInfoDto {
     @NotBlank
     @Size(min = 2, max = 256)
     private String content;

@@ -1,8 +1,8 @@
 package com.mrbpurnachandra.jourvicebackend.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mrbpurnachandra.jourvicebackend.dtos.NoteAdditionInfoDto;
-import com.mrbpurnachandra.jourvicebackend.mappers.NoteAdditionInfoDtoMapper;
+import com.mrbpurnachandra.jourvicebackend.dtos.NoteCreationInfoDto;
+import com.mrbpurnachandra.jourvicebackend.mappers.NoteCreationInfoDtoMapper;
 import com.mrbpurnachandra.jourvicebackend.models.Mood;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.User;
@@ -44,7 +44,7 @@ class NoteControllerTest {
     MockMvc mockMvc;
 
     @MockBean
-    NoteAdditionInfoDtoMapper noteAdditionInfoDtoMapper;
+    NoteCreationInfoDtoMapper noteCreationInfoDtoMapper;
 
     @MockBean
     NoteService noteService;
@@ -86,7 +86,7 @@ class NoteControllerTest {
             ObjectMapper mapper = new ObjectMapper();
             String body = mapper.writeValueAsString(note);
 
-            when(noteAdditionInfoDtoMapper.mapToNote(any())).thenReturn(note);
+            when(noteCreationInfoDtoMapper.mapToNote(any())).thenReturn(note);
 
             mockMvc.perform(
                     post(NOTE_BASE_URL)
@@ -101,16 +101,16 @@ class NoteControllerTest {
         void addNoteShouldAddMoodToNoteIfProvidedBeforeInvokingSaveNoteMethodOnNoteService() throws Exception {
             User user = User.builder().sub(SUB).iss(ISS).build();
 
-            NoteAdditionInfoDto.MoodDto moodDto = NoteAdditionInfoDto.MoodDto.builder().id(MOOD_ID).build();
-            NoteAdditionInfoDto noteAdditionInfoDto = NoteAdditionInfoDto.builder().content(NOTE_CONTENT).mood(moodDto).build();
+            NoteCreationInfoDto.MoodDto moodDto = NoteCreationInfoDto.MoodDto.builder().id(MOOD_ID).build();
+            NoteCreationInfoDto noteCreationInfoDto = NoteCreationInfoDto.builder().content(NOTE_CONTENT).mood(moodDto).build();
 
             ObjectMapper mapper = new ObjectMapper();
-            String body = mapper.writeValueAsString(noteAdditionInfoDto);
+            String body = mapper.writeValueAsString(noteCreationInfoDto);
 
             Mood mood = Mood.builder().id(MOOD_ID).build();
             Note note = Note.builder().content(NOTE_CONTENT).mood(mood).build();
 
-            when(noteAdditionInfoDtoMapper.mapToNote(any())).thenReturn(note);
+            when(noteCreationInfoDtoMapper.mapToNote(any())).thenReturn(note);
 
             mockMvc.perform(
                     post(NOTE_BASE_URL)

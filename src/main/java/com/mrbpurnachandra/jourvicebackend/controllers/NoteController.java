@@ -1,7 +1,7 @@
 package com.mrbpurnachandra.jourvicebackend.controllers;
 
-import com.mrbpurnachandra.jourvicebackend.dtos.NoteAdditionInfoDto;
-import com.mrbpurnachandra.jourvicebackend.mappers.NoteAdditionInfoDtoMapper;
+import com.mrbpurnachandra.jourvicebackend.dtos.NoteCreationInfoDto;
+import com.mrbpurnachandra.jourvicebackend.mappers.NoteCreationInfoDtoMapper;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.services.NoteService;
@@ -15,19 +15,19 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/topic/{topicId}/note")
 public class NoteController {
     private final NoteService noteService;
-    private final NoteAdditionInfoDtoMapper noteAdditionInfoDtoMapper;
+    private final NoteCreationInfoDtoMapper noteCreationInfoDtoMapper;
 
     @Autowired
-    public NoteController(NoteService noteService, NoteAdditionInfoDtoMapper noteAdditionInfoDtoMapper) {
+    public NoteController(NoteService noteService, NoteCreationInfoDtoMapper noteCreationInfoDtoMapper) {
         this.noteService = noteService;
-        this.noteAdditionInfoDtoMapper = noteAdditionInfoDtoMapper;
+        this.noteCreationInfoDtoMapper = noteCreationInfoDtoMapper;
     }
 
     @PostMapping
-    public Note addNote(@PathVariable("topicId") Long topicId, @Valid @RequestBody NoteAdditionInfoDto noteAdditionInfoDto, JwtAuthenticationToken authentication) {
+    public Note addNote(@PathVariable("topicId") Long topicId, @Valid @RequestBody NoteCreationInfoDto noteCreationInfoDto, JwtAuthenticationToken authentication) {
         User user = AuthenticationUtils.getUser(authentication);
 
-        Note note = noteAdditionInfoDtoMapper.mapToNote(noteAdditionInfoDto);
+        Note note = noteCreationInfoDtoMapper.mapToNote(noteCreationInfoDto);
 
         return noteService.addNote(note, topicId, user);
     }
