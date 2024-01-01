@@ -1,7 +1,6 @@
 package com.mrbpurnachandra.jourvicebackend.controllers;
 
 import com.mrbpurnachandra.jourvicebackend.dtos.NoteCreationInfoDto;
-import com.mrbpurnachandra.jourvicebackend.mappers.NoteCreationInfoDtoMapper;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.services.NoteService;
@@ -15,21 +14,17 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/topic/{topicId}/note")
 public class NoteController {
     private final NoteService noteService;
-    private final NoteCreationInfoDtoMapper noteCreationInfoDtoMapper;
 
     @Autowired
-    public NoteController(NoteService noteService, NoteCreationInfoDtoMapper noteCreationInfoDtoMapper) {
+    public NoteController(NoteService noteService) {
         this.noteService = noteService;
-        this.noteCreationInfoDtoMapper = noteCreationInfoDtoMapper;
     }
 
     @PostMapping
     public Note addNote(@PathVariable("topicId") Long topicId, @Valid @RequestBody NoteCreationInfoDto noteCreationInfoDto, JwtAuthenticationToken authentication) {
         User user = AuthenticationUtils.getUser(authentication);
 
-        Note note = noteCreationInfoDtoMapper.mapToNote(noteCreationInfoDto);
-
-        return noteService.addNote(note, topicId, user);
+        return noteService.addNote(noteCreationInfoDto, topicId, user);
     }
 
     @DeleteMapping("/{id}")

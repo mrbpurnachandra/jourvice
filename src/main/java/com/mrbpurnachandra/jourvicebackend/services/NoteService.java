@@ -1,8 +1,10 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
+import com.mrbpurnachandra.jourvicebackend.dtos.NoteCreationInfoDto;
 import com.mrbpurnachandra.jourvicebackend.exceptions.InvalidMoodException;
 import com.mrbpurnachandra.jourvicebackend.exceptions.MoodNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.exceptions.NoteNotFoundException;
+import com.mrbpurnachandra.jourvicebackend.mappers.NoteCreationInfoDtoMapper;
 import com.mrbpurnachandra.jourvicebackend.models.Mood;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
@@ -19,17 +21,22 @@ public class NoteService {
     private final TopicService topicService;
     private final MoodService moodService;
     private final NoteRepository noteRepository;
+    private final NoteCreationInfoDtoMapper noteCreationInfoDtoMapper;
 
     @Autowired
-    public NoteService(TopicService topicService, MoodService moodService, NoteRepository noteRepository) {
+    public NoteService(TopicService topicService, MoodService moodService, NoteRepository noteRepository, NoteCreationInfoDtoMapper noteCreationInfoDtoMapper) {
         this.topicService = topicService;
         this.moodService = moodService;
         this.noteRepository = noteRepository;
+        this.noteCreationInfoDtoMapper = noteCreationInfoDtoMapper;
     }
 
     @Transactional
-    public Note addNote(Note note, Long topicId, User user) {
+    public Note addNote(NoteCreationInfoDto noteCreationInfoDto, Long topicId, User user) {
         Topic topic = topicService.getTopic(topicId, user);
+
+        Note note = noteCreationInfoDtoMapper.mapToNote(noteCreationInfoDto);
+
         note.setTopic(topic);
 
         // This is to ensure that user does not specify invalid mood

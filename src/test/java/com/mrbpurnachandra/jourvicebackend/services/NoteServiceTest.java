@@ -1,11 +1,12 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
+import com.mrbpurnachandra.jourvicebackend.dtos.NoteCreationInfoDto;
 import com.mrbpurnachandra.jourvicebackend.exceptions.InvalidMoodException;
 import com.mrbpurnachandra.jourvicebackend.exceptions.MoodNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.exceptions.NoteNotFoundException;
+import com.mrbpurnachandra.jourvicebackend.mappers.NoteCreationInfoDtoMapper;
 import com.mrbpurnachandra.jourvicebackend.models.Mood;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
-import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.repositories.NoteRepository;
 import org.junit.jupiter.api.Nested;
@@ -44,15 +45,25 @@ class NoteServiceTest {
     @MockBean
     NoteRepository noteRepository;
 
+    @MockBean
+    NoteCreationInfoDtoMapper noteCreationInfoDtoMapper;
+
     @Nested
     class AddNoteTest {
 
         @Test
         void addNoteShouldInvokeGetTopicMethodOnTopicService() {
             User user = User.builder().sub(SUB).iss(ISS).build();
+
+            NoteCreationInfoDto noteCreationInfoDto = NoteCreationInfoDto.builder()
+                    .content(NOTE_CONTENT)
+                    .build();
+
             Note note = Note.builder().content(NOTE_CONTENT).build();
 
-            noteService.addNote(note, TOPIC_ID, user);
+            when(noteCreationInfoDtoMapper.mapToNote(noteCreationInfoDto)).thenReturn(note);
+
+            noteService.addNote(noteCreationInfoDto, TOPIC_ID, user);
 
             verify(topicService).getTopic(eq(TOPIC_ID), eq(user));
         }
@@ -61,28 +72,43 @@ class NoteServiceTest {
         void addNoteShouldThrowInvalidMoodExceptionWhenSuppliedMoodIsInvalid() {
             assertThrows(InvalidMoodException.class, () -> {
                 User user = User.builder().sub(SUB).iss(ISS).build();
-                Note note = Note.builder().content(NOTE_CONTENT).build();
-                Mood mood = Mood.builder().id(MOOD_ID).build();
 
-                note.setMood(mood);
+                NoteCreationInfoDto noteCreationInfoDto = NoteCreationInfoDto.builder()
+                        .content(NOTE_CONTENT)
+                        .mood(new NoteCreationInfoDto.MoodDto(MOOD_ID))
+                        .build();
+
+                Mood mood = Mood.builder().id(MOOD_ID).build();
+                Note note = Note.builder().content(NOTE_CONTENT).mood(mood).build();
+
+                when(noteCreationInfoDtoMapper.mapToNote(noteCreationInfoDto)).thenReturn(note);
 
                 when(moodService.getMood(MOOD_ID)).thenThrow(MoodNotFoundException.class);
 
-                noteService.addNote(note, TOPIC_ID, user);
+                noteService.addNote(noteCreationInfoDto, TOPIC_ID, user);
             });
+        }
+
+        @Test
+        void addNoteShouldAddMoodToNoteIfProvided() {
+
         }
 
         @Test
         void addNoteShouldInvokeSaveMethodOnNoteRepository() {
             User user = User.builder().sub(SUB).iss(ISS).build();
-            Topic topic = Topic.builder().id(TOPIC_ID).build();
+
+            NoteCreationInfoDto noteCreationInfoDto = NoteCreationInfoDto.builder()
+                    .content(NOTE_CONTENT)
+                    .build();
+
             Note note = Note.builder().content(NOTE_CONTENT).build();
 
-            when(topicService.getTopic(topic.getId(), user)).thenReturn(topic);
+            when(noteCreationInfoDtoMapper.mapToNote(noteCreationInfoDto)).thenReturn(note);
 
-            noteService.addNote(note, topic.getId(), user);
+            noteService.addNote(noteCreationInfoDto, TOPIC_ID, user);
 
-            verify(noteRepository).save(assertArg(n -> assertEquals(topic, n.getTopic())));
+            verify(noteRepository).save(assertArg(n -> assertEquals(NOTE_CONTENT, n.getContent())));
         }
     }
 
