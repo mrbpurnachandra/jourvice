@@ -3,7 +3,6 @@ package com.mrbpurnachandra.jourvicebackend.services;
 import com.mrbpurnachandra.jourvicebackend.exceptions.MoodNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Mood;
 import com.mrbpurnachandra.jourvicebackend.repositories.MoodRepository;
-import org.hibernate.sql.ast.tree.expression.Over;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
