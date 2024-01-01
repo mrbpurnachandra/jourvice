@@ -10,7 +10,8 @@ public class NoteAdditionInfoDtoMapper {
     public Note mapToNote(NoteAdditionInfoDto noteAdditionInfoDto) {
         if (noteAdditionInfoDto == null) return null;
 
-        Note note = Note.builder().build();
+        Note note = new Note();
+
         note.setContent(noteAdditionInfoDto.getContent());
 
         if (noteAdditionInfoDto.getMood() != null) {
