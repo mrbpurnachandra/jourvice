@@ -1,5 +1,6 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
+import com.mrbpurnachandra.jourvicebackend.exceptions.TopicAccessDeniedException;
 import com.mrbpurnachandra.jourvicebackend.exceptions.TopicNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Optional;
 
@@ -52,8 +52,8 @@ class TopicServiceTest {
     @Nested
     class DeleteTopicTest {
         @Test
-        void deleteTopicShouldThrowAccessDeniedExceptionWhenTryingToDeleteOthersTopic() {
-            assertThrows(AccessDeniedException.class, () -> {
+        void deleteTopicShouldThrowTopicAccessDeniedExceptionWhenTryingToDeleteOthersTopic() {
+            assertThrows(TopicAccessDeniedException.class, () -> {
                 User user1 = User.builder().sub(SUB).iss(ISS).build();
                 User user2 = User.builder().sub(OTHER_SUB).iss(ISS).build();
                 Topic topic = Topic.builder().id(TOPIC_ID).name(TOPIC_NAME).description(TOPIC_DESCRIPTION).user(user1).build();
@@ -93,8 +93,8 @@ class TopicServiceTest {
         }
 
         @Test
-        void getTopicShouldThrowAccessDeniedExceptionWhenTryingToAccessOthersTopic() {
-            assertThrows(AccessDeniedException.class, () -> {
+        void getTopicShouldThrowTopicAccessDeniedExceptionWhenTryingToAccessOthersTopic() {
+            assertThrows(TopicAccessDeniedException.class, () -> {
                 User user1 = User.builder().sub(SUB).iss(ISS).build();
                 User user2 = User.builder().sub(OTHER_SUB).iss(ISS).build();
                 Topic topic = Topic.builder().id(TOPIC_ID).name(TOPIC_NAME).description(TOPIC_DESCRIPTION).user(user1).build();

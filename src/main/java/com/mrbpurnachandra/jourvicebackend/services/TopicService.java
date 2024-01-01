@@ -1,12 +1,12 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
+import com.mrbpurnachandra.jourvicebackend.exceptions.TopicAccessDeniedException;
 import com.mrbpurnachandra.jourvicebackend.exceptions.TopicNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.repositories.TopicRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -36,7 +36,7 @@ public class TopicService {
 
         topic.ifPresent((t) -> {
             if (!t.getUser().equals(user))
-                throw new AccessDeniedException("Unauthorized access");
+                throw new TopicAccessDeniedException();
             topicRepository.delete(t);
         });
     }
@@ -50,7 +50,7 @@ public class TopicService {
         Topic t = topic.get();
 
         if (!t.getUser().equals(user))
-            throw new AccessDeniedException("Unauthorized access");
+            throw new TopicAccessDeniedException();
 
         return t;
     }
