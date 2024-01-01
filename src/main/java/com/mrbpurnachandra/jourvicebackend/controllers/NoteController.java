@@ -29,7 +29,7 @@ public class NoteController {
 
         Note note = noteAdditionInfoDtoMapper.mapToNote(noteAdditionInfoDto);
 
-        return noteService.saveNote(note, topicId, user);
+        return noteService.addNote(note, topicId, user);
     }
 
     @DeleteMapping("/{id}")

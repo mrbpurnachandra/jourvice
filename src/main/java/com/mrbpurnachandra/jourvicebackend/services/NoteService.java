@@ -1,6 +1,9 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
+import com.mrbpurnachandra.jourvicebackend.exceptions.InvalidMoodException;
+import com.mrbpurnachandra.jourvicebackend.exceptions.MoodNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.exceptions.NoteNotFoundException;
+import com.mrbpurnachandra.jourvicebackend.models.Mood;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
@@ -14,20 +17,30 @@ import java.util.Optional;
 @Service
 public class NoteService {
     private final TopicService topicService;
+    private final MoodService moodService;
     private final NoteRepository noteRepository;
 
     @Autowired
-    public NoteService(TopicService topicService, NoteRepository noteRepository) {
+    public NoteService(TopicService topicService, MoodService moodService, NoteRepository noteRepository) {
         this.topicService = topicService;
+        this.moodService = moodService;
         this.noteRepository = noteRepository;
     }
 
-
     @Transactional
-    public Note saveNote(Note note, Long topicId, User user) {
+    public Note addNote(Note note, Long topicId, User user) {
         Topic topic = topicService.getTopic(topicId, user);
-
         note.setTopic(topic);
+
+        // This is to ensure that user does not specify invalid mood
+        if (note.getMood() != null) {
+            try {
+                Mood mood = moodService.getMood(note.getMood().getId());
+                note.setMood(mood);
+            } catch (MoodNotFoundException e) {
+                throw new InvalidMoodException();
+            }
+        }
 
         return noteRepository.save(note);
     }

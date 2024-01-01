@@ -1,6 +1,9 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
+import com.mrbpurnachandra.jourvicebackend.exceptions.InvalidMoodException;
+import com.mrbpurnachandra.jourvicebackend.exceptions.MoodNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.exceptions.NoteNotFoundException;
+import com.mrbpurnachandra.jourvicebackend.models.Mood;
 import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
@@ -26,6 +29,7 @@ class NoteServiceTest {
     static final String SUB = "123456789";
     static final long TOPIC_ID = 1L;
     static final long NOTE_ID = 1L;
+    static final Integer MOOD_ID = 1;
     static final String NOTE_CONTENT = "Content of Note";
 
     @Autowired
@@ -33,6 +37,9 @@ class NoteServiceTest {
 
     @MockBean
     TopicService topicService;
+
+    @MockBean
+    MoodService moodService;
 
     @MockBean
     NoteRepository noteRepository;
@@ -45,9 +52,24 @@ class NoteServiceTest {
             User user = User.builder().sub(SUB).iss(ISS).build();
             Note note = Note.builder().content(NOTE_CONTENT).build();
 
-            noteService.saveNote(note, TOPIC_ID, user);
+            noteService.addNote(note, TOPIC_ID, user);
 
             verify(topicService).getTopic(eq(TOPIC_ID), eq(user));
+        }
+
+        @Test
+        void addNoteShouldThrowInvalidMoodExceptionWhenSuppliedMoodIsInvalid() {
+            assertThrows(InvalidMoodException.class, () -> {
+                User user = User.builder().sub(SUB).iss(ISS).build();
+                Note note = Note.builder().content(NOTE_CONTENT).build();
+                Mood mood = Mood.builder().id(MOOD_ID).build();
+
+                note.setMood(mood);
+
+                when(moodService.getMood(MOOD_ID)).thenThrow(MoodNotFoundException.class);
+
+                noteService.addNote(note, TOPIC_ID, user);
+            });
         }
 
         @Test
@@ -58,7 +80,7 @@ class NoteServiceTest {
 
             when(topicService.getTopic(topic.getId(), user)).thenReturn(topic);
 
-            noteService.saveNote(note, topic.getId(), user);
+            noteService.addNote(note, topic.getId(), user);
 
             verify(noteRepository).save(assertArg(n -> assertEquals(topic, n.getTopic())));
         }

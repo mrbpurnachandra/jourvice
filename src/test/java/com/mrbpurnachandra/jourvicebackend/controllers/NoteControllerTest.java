@@ -94,7 +94,7 @@ class NoteControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .with(jwt().jwt(j -> j.claim("sub", SUB).claim("iss", ISS))));
 
-            verify(noteService).saveNote(eq(note), eq(TOPIC_ID), eq(user));
+            verify(noteService).addNote(eq(note), eq(TOPIC_ID), eq(user));
         }
 
         @Test
@@ -118,7 +118,7 @@ class NoteControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .with(jwt().jwt(j -> j.claim("sub", SUB).claim("iss", ISS))));
 
-            verify(noteService).saveNote(eq(note), eq(TOPIC_ID), eq(user));
+            verify(noteService).addNote(eq(note), eq(TOPIC_ID), eq(user));
         }
     }
 
