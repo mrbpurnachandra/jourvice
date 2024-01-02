@@ -10,7 +10,6 @@ import com.mrbpurnachandra.jourvicebackend.models.Note;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.repositories.NoteRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,6 @@ public class NoteService {
         this.noteCreationInfoDtoMapper = noteCreationInfoDtoMapper;
     }
 
-    @Transactional
     public Note addNote(NoteCreationInfoDto noteCreationInfoDto, Long topicId, User user) {
         Topic topic = topicService.getTopic(topicId, user);
 
@@ -52,7 +50,6 @@ public class NoteService {
         return noteRepository.save(note);
     }
 
-    @Transactional
     public void deleteNote(Long id, Long topicId, User user) {
         // This handles the authorization because user other than owner of topic
         // cannot get the topic

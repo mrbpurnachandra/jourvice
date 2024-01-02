@@ -5,7 +5,6 @@ import com.mrbpurnachandra.jourvicebackend.exceptions.TopicNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Topic;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.repositories.TopicRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +29,6 @@ public class TopicService {
         return topicRepository.findById(id);
     }
 
-    @Transactional
     public void deleteTopic(Long id, User user) {
         Optional<Topic> topic = findById(id);
 
@@ -41,7 +39,6 @@ public class TopicService {
         });
     }
 
-    @Transactional
     public Topic getTopic(Long id, User user) {
         Optional<Topic> topic = findById(id);
 
