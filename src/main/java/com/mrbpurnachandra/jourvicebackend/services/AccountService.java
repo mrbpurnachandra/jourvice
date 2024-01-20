@@ -1,6 +1,7 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
 import com.mrbpurnachandra.jourvicebackend.exceptions.AccountConflictException;
+import com.mrbpurnachandra.jourvicebackend.exceptions.AccountNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Account;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.repositories.AccountRepository;
@@ -41,5 +42,11 @@ public class AccountService {
         account.setSub(user.getSub());
 
         return accountRepository.save(account);
+    }
+
+    public Account getAccountByUser(User user) {
+        Optional<Account> account = accountRepository.findAccountByIssAndSub(user.getIss(), user.getSub());
+
+        return account.orElseThrow(AccountNotFoundException::new);
     }
 }

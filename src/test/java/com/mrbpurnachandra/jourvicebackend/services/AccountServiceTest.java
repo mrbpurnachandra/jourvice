@@ -1,6 +1,7 @@
 package com.mrbpurnachandra.jourvicebackend.services;
 
 import com.mrbpurnachandra.jourvicebackend.exceptions.AccountConflictException;
+import com.mrbpurnachandra.jourvicebackend.exceptions.AccountNotFoundException;
 import com.mrbpurnachandra.jourvicebackend.models.Account;
 import com.mrbpurnachandra.jourvicebackend.models.User;
 import com.mrbpurnachandra.jourvicebackend.repositories.AccountRepository;
@@ -14,6 +15,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.assertArg;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,6 +85,31 @@ class AccountServiceTest {
                 assertEquals(SUB, account.getSub());
             }));
         }
+    }
+
+    @Nested
+    class GetAccountByUserTest {
+        @Test
+        void getAccountByUserShouldInvokeFindAccountByIssAndSubOnAccountRepository() {
+            User user = User.builder().iss(ISS).sub(SUB).build();
+            Account account = Account.builder().name(ACCOUNT_NAME).build();
+
+            when(accountRepository.findAccountByIssAndSub(ISS, SUB)).thenReturn(Optional.of(account));
+
+            accountService.getAccountByUser(user);
+
+            verify(accountRepository).findAccountByIssAndSub(eq(ISS), eq(SUB));
+        }
+
+        @Test
+        void getAccountByUserShouldThrowAccountNotFoundExceptionWhenAccountDoesNotExist() {
+            User user = User.builder().iss(ISS).sub(SUB).build();
+
+            assertThrows(AccountNotFoundException.class, () -> {
+                accountService.getAccountByUser(user);
+            });
+        }
+
     }
 
 }

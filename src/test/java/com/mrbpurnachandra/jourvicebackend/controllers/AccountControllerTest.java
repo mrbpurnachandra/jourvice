@@ -21,6 +21,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,10 +33,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AccountController.class)
 class AccountControllerTest {
-    static final String ACCOUNT_BASE_URL = "/account";
     static final String ACCOUNT_NAME = "Prakash Bhattarai";
     static final String ISS = "https://accounts.google.com";
     static final String SUB = "123456789";
+    static final String ACCOUNT_BASE_URL = "/account";
+    static final String USER_ACCOUNT_URL = ACCOUNT_BASE_URL + "/me";
 
     @Autowired
     MockMvc mockMvc;
@@ -90,6 +92,23 @@ class AccountControllerTest {
             mockMvc.perform(post(ACCOUNT_BASE_URL).content(body).contentType(MediaType.APPLICATION_JSON).with(jwt().jwt(j -> j.claim("iss", ISS).claim("sub", SUB))));
 
             verify(accountService).createAccount(eq(account), eq(user));
+        }
+    }
+
+    @Nested
+    class GetAccountByUserTest {
+        @Test
+        void getAccountByUserShouldReturnUnauthorizedWithoutUser() throws Exception {
+            mockMvc.perform(get(USER_ACCOUNT_URL)).andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        void getAccountByUserShouldInvokeGetAccountByUserMethodOnAccountService() throws Exception {
+            User user = User.builder().iss(ISS).sub(SUB).build();
+
+            mockMvc.perform(get(USER_ACCOUNT_URL).with(jwt().jwt(j -> j.claim("iss", ISS).claim("sub", SUB))));
+
+            verify(accountService).getAccountByUser(eq(user));
         }
     }
 }
